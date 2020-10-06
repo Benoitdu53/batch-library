@@ -1,4 +1,4 @@
-package batch.model;
+package com.web.library.batchlibrary.model;
 
 public class Library {
 

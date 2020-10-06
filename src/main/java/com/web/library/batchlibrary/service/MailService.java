@@ -1,15 +1,13 @@
-package batch.service;
+package com.web.library.batchlibrary.service;
 
-import batch.model.Emprunt;
-import batch.proxy.FeignProxy;
+import com.web.library.batchlibrary.model.Emprunt;
+import com.web.library.batchlibrary.proxy.FeignProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -27,9 +25,9 @@ public class MailService {
     private FeignProxy feignProxy;
 
 
-    public void sendMailReturnBook(){
+    public void sendMailReturnBook(String accessToken){
 
-        List<Emprunt> empruntList = feignProxy.getEmpruntExpiredLoanDate();
+        List<Emprunt> empruntList = feignProxy.getEmpruntExpiredLoanDate(accessToken);
 
         for (Emprunt emprunt : empruntList){
             sendMessage(emprunt.getCustomer().getEmail(), emprunt.getCustomer().getFirstName(), emprunt.getCustomer().getLastName(),
@@ -67,8 +65,7 @@ public class MailService {
      * @return
      */
     private String formatDateToMail(Date date){
-        // TODO gérer le nouveau pattern ("dd MMM YYYY") avec Date
-
-        return null;
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-YYYY");
+        return sdf.format(date);
     }
 }

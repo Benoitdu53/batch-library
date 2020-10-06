@@ -1,6 +1,4 @@
-package batch.model;
-
-import java.util.Date;
+package com.web.library.batchlibrary.model;
 
 public class Customer {
 
