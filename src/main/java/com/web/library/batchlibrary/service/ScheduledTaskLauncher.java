@@ -5,9 +5,13 @@ import com.web.library.batchlibrary.proxy.FeignProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.http.Cookie;
+import java.util.Map;
 
 @Component
 @EnableScheduling
@@ -20,10 +24,15 @@ public class ScheduledTaskLauncher {
     @Autowired
     private MailService mailService;
 
-    @Scheduled(cron = "*/1 * * * * ?")
+    @Scheduled(cron = "*/2 * * * * ?")
     public void runScheduledTask(){
-        String accessToken = feignProxy.validationAuthentication(new LoginBean()).getHeaders().getFirst("Authorization");
-        mailService.sendMailReturnBook(accessToken);
+
+        ResponseEntity<?> testToken = feignProxy.validationAuthentication(new LoginBean());
+
+        Cookie cookie = new Cookie("Token", ((Map<String,String>) testToken.getBody()).get("token"));
+        String token = "Bearer "+ cookie.getValue();
+
+        mailService.sendMailReturnBook(token);
         logger.info("Mail envoyé");
     }
 }

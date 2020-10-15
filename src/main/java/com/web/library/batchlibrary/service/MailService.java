@@ -15,14 +15,16 @@ import java.util.Objects;
 @Service
 public class MailService {
 
-    @Autowired
     private JavaMailSender javaMailSender;
-
-    @Autowired
     private SimpleMailMessage message;
+    private FeignProxy feignProxy;
 
     @Autowired
-    private FeignProxy feignProxy;
+    public MailService(JavaMailSender javaMailSender, SimpleMailMessage message, FeignProxy feignProxy) {
+        this.javaMailSender = javaMailSender;
+        this.message = message;
+        this.feignProxy = feignProxy;
+    }
 
 
     public void sendMailReturnBook(String accessToken){
@@ -44,8 +46,8 @@ public class MailService {
      * @param date
      */
     private void sendMessage(String argTo, String argFirst, String argLast, String argTitle, String date){
-        SimpleMailMessage message = new SimpleMailMessage();
-        String text = String.format(Objects.requireNonNull(message.getText()),argFirst, argLast, argTitle, date);
+        SimpleMailMessage mailMessage = new SimpleMailMessage(message);
+        String text = String.format(Objects.requireNonNull(mailMessage.getText()),argFirst, argLast, argTitle, date);
         message.setTo(argTo);
         message.setText(text);
         javaMailSender.send(message);
