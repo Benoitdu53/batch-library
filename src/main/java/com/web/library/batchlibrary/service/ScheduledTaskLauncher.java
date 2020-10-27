@@ -24,7 +24,9 @@ public class ScheduledTaskLauncher {
     @Autowired
     private MailService mailService;
 
-    @Scheduled(cron = "*/2 * * * * ?")
+//    cron="0 0 1 * * ?"
+//    config cron pour production ( check 1 fois par jour )
+    @Scheduled(cron = "*/30 * * * * ?")
     public void runScheduledTask(){
 
         ResponseEntity<?> testToken = feignProxy.validationAuthentication(new LoginBean());

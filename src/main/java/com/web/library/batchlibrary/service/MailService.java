@@ -2,18 +2,23 @@ package com.web.library.batchlibrary.service;
 
 import com.web.library.batchlibrary.model.Emprunt;
 import com.web.library.batchlibrary.proxy.FeignProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 public class MailService {
+
+    private static Logger logger = LoggerFactory.getLogger(ScheduledTaskLauncher.class);
 
     private JavaMailSender javaMailSender;
     private SimpleMailMessage message;
@@ -29,12 +34,27 @@ public class MailService {
 
     public void sendMailReturnBook(String accessToken){
 
+        List<Emprunt> loan = new ArrayList<>();
+
         List<Emprunt> empruntList = feignProxy.getEmpruntExpiredLoanDate(accessToken);
 
-        for (Emprunt emprunt : empruntList){
-            sendMessage(emprunt.getCustomer().getEmail(), emprunt.getCustomer().getFirstName(), emprunt.getCustomer().getLastName(),
-                    emprunt.getCopy().getBook().getTitle(), formatDateToMail(emprunt.getReturnDate()));
+        for (Emprunt emprunts : empruntList) {
+            Emprunt emprunt = new Emprunt();
+            emprunt.setCopy(emprunts.getCopy());
+            emprunt.setCustomer(emprunts.getCustomer());
+            emprunt.setEmpruntDate(emprunts.getEmpruntDate());
+            emprunt.setReturnDate(emprunts.getReturnDate());
+            emprunt.setExtended(emprunts.getExtended());
+            emprunt.setId(emprunts.getId());
+            loan.add(emprunt);
         }
+
+        for (Emprunt loanMail : loan){
+            sendMessage(loanMail.getCustomer().getEmail(), loanMail.getCustomer().getFirstName(), loanMail.getCustomer().getLastName(),
+                    loanMail.getCopy().getBook().getTitle(), formatDateToMail(loanMail.getReturnDate()));
+        }
+
+
     }
 
     /**
