@@ -13,6 +13,6 @@ Pré-requis :
   
 Déploiement :
  
-  - Télécharger le code de l'application en cliquant sur "Code" et "download ZIP" sur le lien Github. Décompressez le .ZIP. Ouvrez le terminal et placer vous dans le dossier webapp/target et entrer la commande "java -jar batch-library-0.0.1-SNAPSHOT.jar"
+  - Télécharger le code de l'application en cliquant sur "Code" et "download ZIP" sur le lien Github. Décompressez le .ZIP. Ouvrez le terminal et placer vous dans le dossier parent ( batch-library-master ) et entrer la commande "mvn package". Ensuite, un dossier target à été créer, allez dans le dossier et taper la commande: "java -jar batch-library-0.0.1-SNAPSHOT.jar"
   
   - Le batch sera lancé.
