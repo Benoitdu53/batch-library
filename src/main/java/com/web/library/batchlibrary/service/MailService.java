@@ -5,6 +5,7 @@ import com.web.library.batchlibrary.proxy.FeignProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -20,21 +21,25 @@ public class MailService {
 
     private static Logger logger = LoggerFactory.getLogger(ScheduledTaskLauncher.class);
 
+    @Value("$spring.mail.username")
+    private String username;
+
+
     private JavaMailSender javaMailSender;
-    private SimpleMailMessage message;
+//    private SimpleMailMessage message;
     private FeignProxy feignProxy;
 
     @Autowired
-    public MailService(JavaMailSender javaMailSender, SimpleMailMessage message, FeignProxy feignProxy) {
+    public MailService(JavaMailSender javaMailSender, FeignProxy feignProxy) {
         this.javaMailSender = javaMailSender;
-        this.message = message;
+//        this.message = message;
         this.feignProxy = feignProxy;
     }
 
 
     public void sendMailReturnBook(String accessToken){
 
-        List<Emprunt> loan = new ArrayList<>();
+        List<Emprunt> loans = new ArrayList<>();
 
         List<Emprunt> empruntList = feignProxy.getEmpruntExpiredLoanDate(accessToken);
 
@@ -46,12 +51,12 @@ public class MailService {
             emprunt.setReturnDate(emprunts.getReturnDate());
             emprunt.setExtended(emprunts.getExtended());
             emprunt.setId(emprunts.getId());
-            loan.add(emprunt);
+            loans.add(emprunt);
         }
 
-        for (Emprunt loanMail : loan){
-            sendMessage(loanMail.getCustomer().getEmail(), loanMail.getCustomer().getFirstName(), loanMail.getCustomer().getLastName(),
-                    loanMail.getCopy().getBook().getTitle(), formatDateToMail(loanMail.getReturnDate()));
+        for (Emprunt loan : loans){
+            sendMessage(loan.getCustomer().getEmail(), loan.getCustomer().getFirstName(), loan.getCustomer().getLastName(),
+                    loan.getCopy().getBook().getTitle(), formatDateToMail(loan.getReturnDate()));
         }
 
 
@@ -66,19 +71,11 @@ public class MailService {
      * @param date
      */
     private void sendMessage(String argTo, String argFirst, String argLast, String argTitle, String date){
-        SimpleMailMessage mailMessage = new SimpleMailMessage(message);
+        SimpleMailMessage mailMessage = new SimpleMailMessage(mailRecoveryModel());
         String text = String.format(Objects.requireNonNull(mailMessage.getText()),argFirst, argLast, argTitle, date);
-        message.setTo(argTo);
-        message.setText(text);
-        javaMailSender.send(message);
-    }
-
-    private void sendSimpleMessage(String to, String subject, String body){
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(body);
-        javaMailSender.send(message);
+        mailMessage.setTo(argTo);
+        mailMessage.setText(text);
+        javaMailSender.send(mailMessage);
     }
 
     /**
@@ -89,5 +86,20 @@ public class MailService {
     private String formatDateToMail(Date date){
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-YYYY");
         return sdf.format(date);
+    }
+
+    private SimpleMailMessage mailRecoveryModel(){
+        SimpleMailMessage writer = new SimpleMailMessage();
+        writer.setTo("%s");
+        writer.setFrom(username);
+        writer.setSubject("Fin de période de prêt - Bibliothèque d'OC-City");
+        writer.setText("Bonjour, %s %s" +
+                "\n\nLa date de retour de votre prêt du livre \"%s\" était le : %s" +
+                "\nIl est possible de prolonger le prêt du livre de 4 semaines, si ce n'est pas déjà fait." +
+                "\nDans le cas contraire, pensez à ramener le livre au plus vite" +
+                "\n\n\nBibliothèque d'OC-City" +
+                "\n\n\n\nCeci est un message automatique, ne pas répondre à ce mail.");
+
+        return writer;
     }
 }
